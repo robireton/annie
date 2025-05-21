@@ -1,7 +1,7 @@
 #!/usr/bin/env osascript -l JavaScript
 /* global Application */
 
-const stars = (c = '★', n) => ''.padStart(n, c)
+const stars = (𝑛, c = '★') => ''.padStart(𝑛, c)
 
 const tracks = Application('Music').libraryPlaylists[0].tracks()
 console.log(`Adjusting ratings for ${tracks.length} tracks`)
