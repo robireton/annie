@@ -64,6 +64,7 @@ if (debug) {
 }
 
 const playlists = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(name => Playlist.fromDatabase({ name, db }))
+if (debug) console.log(`playlists has type ${typeof playlists} and length ${playlists.length} and ${playlists instanceof Array ? 'is' : 'is not'} an array`)
 db.close()
 
 const B = batchSizes(music, targetLength, playlists.length)
@@ -92,34 +93,52 @@ if (debug) {
   }
 }
 
+if (debug) {
+  for (const playlist of playlists) {
+    console.log(`\n\n“${playlist.name}” (${playlist.id})`)
+    console.log(`   ★★ · ${String(playlist.tracksWithStars(2).length).padStart(4)} tracks`)
+    console.log(`  ★★★ · ${String(playlist.tracksWithStars(3).length).padStart(4)} tracks`)
+    console.log(` ★★★★ · ${String(playlist.tracksWithStars(4).length).padStart(4)} tracks`)
+    console.log(`★★★★★ · ${String(playlist.tracksWithStars(5).length).padStart(4)} tracks`)
+    console.log(`total · ${String(playlist.length).padStart(4)} tracks`)
+    console.log(`distinct artists: ${playlist.artists.size}`)
+  }
+}
+
 for (const [s, n] of B) {
+  if (debug) console.log(`\n\n${s} · ${n}`)
   let abort = playlists.map(playlist => playlist.length).every(length => length >= targetLength)
-  while (!abort && playlists.map(playlist => playlist.tracksWithStars(s).length).some(length => length < n) && music.tracksWithStars(s).length > 0) {
+  if (debug) console.log(`\tabort is ${abort}`)
+  if (debug) console.log(`playlists that have fewer than ${n} tracks with ${s} stars: ${playlists.filter(p => !p.isFull(s, n, targetLength)).map(p => p.name).join(', ')}`)
+  while (!abort && playlists.some(p => !p.isFull(s, n, targetLength)) && music.tracksWithStars(s).length > 0) {
     for (const playlist of playlists) {
       // Get the least-recently-played track
-      if (!abort && playlist.tracksWithStars(s).length < n && playlist.length < targetLength) {
+      if (!(abort || playlist.isFull(s, n, targetLength))) {
         const track = music.leastRecentlyPlayedTrack(s, playlist.artists)
         if (track) {
           playlist.add(track)
           music.delete(track)
         } else {
+          if (debug) console.log('abort')
           abort = true
           break
         }
       }
 
       // Get the least-played/skipped track
-      if (!abort && playlist.tracksWithStars(s).length < n && playlist.length < targetLength) {
+      if (!(abort || playlist.isFull(s, n, targetLength))) {
         const track = music.leastPlayedTrack(s, playlist.artists)
         if (track) {
           playlist.add(track)
           music.delete(track)
         } else {
+          if (debug) console.log('abort')
           abort = true
           break
         }
       }
     }
+    if (debug) console.log(`playlists that have fewer than ${n} tracks with ${s} stars: ${playlists.filter(p => !p.isFull(s, n, targetLength)).map(p => p.name).join(', ')}`)
   }
 }
 
