@@ -1,0 +1,34 @@
+{
+  "name": "@robireton/annie",
+  "description": "JavaScript for working with an Apple Music library",
+  "type": "module",
+  "exports": {
+    "./playlist": "./lib/Playlist.js",
+    "./track": "./lib/Track.js"
+  },
+  "version": "0.1.0",
+  "keywords": [
+    "javascript",
+    "osascript",
+    "automation",
+    "jxa",
+    "sqlite",
+    "music"
+  ],  "scripts": {
+    "automatic": "node --disable-warning=ExperimentalWarning automatic.js | osascript -l JavaScript sync.js",
+    "duplicates": "osascript -l JavaScript duplicates.js",
+    "ratings": "osascript -l JavaScript ratings.js",
+    "refresh": "osascript -l JavaScript export.js | node --disable-warning=ExperimentalWarning import.js",
+    "test": "osascript -l JavaScript test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robireton/annie.git"
+  },
+  "author": "Rob Ireton <rob@ireton.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/robireton/annie/issues"
+  },
+  "homepage": "https://github.com/robireton/annie#readme"
+}
