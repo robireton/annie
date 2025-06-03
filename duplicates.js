@@ -1,13 +1,20 @@
 import { DatabaseSync } from 'node:sqlite'
 
+function standardize (str) {
+  return str.trim().replaceAll(/\s*[(][^)]*[)]\s*/g, '').replaceAll(/\s*[\[][^\]]*[\]]\s*/g, '').normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '').toLowerCase().replaceAll(/&/g, 'and').replaceAll(/['?!.]/g, '')
+}
+
 const db = new DatabaseSync('library.db')
 
 const select = db.prepare(`
   SELECT
     "persistentID",
-    iif("sortName" = '', "name", "sortName") AS "name",
-    iif("sortArtist" = '', "artist", "sortArtist") AS "artist",
-    iif("sortAlbum" = '', "album", "sortAlbum") AS "album",
+    "name",
+    "artist",
+    "album",
+    iif("sortName" = '', "name", "sortName") AS "sortName",
+    iif("sortArtist" = '', "artist", "sortArtist") AS "sortArtist",
+    iif("sortAlbum" = '', "album", "sortAlbum") AS "sortAlbum",
     "time",
     "duration",
     "year",
@@ -26,9 +33,10 @@ const select = db.prepare(`
 
 const A = new Map()
 for (const track of select.iterate()) {
-  const artist = track.artist.trim()
-  const name = track.name.trim().replaceAll(/^[a-z0-9 ]/ig, '')
-  const key = `${artist}·${name}`.toLowerCase()
+  const artist = standardize(track.sortArtist)
+  const name = standardize(track.sortName)
+  const duration = Math.round(track.duration / 10)
+  const key = `${artist}·${name}·${duration}`
   if (A.has(key)) {
     A.get(key).push(track)
   } else {
@@ -37,5 +45,5 @@ for (const track of select.iterate()) {
 }
 db.close()
 
-const report = Array.from(A.values()).filter(tracks => tracks.length > 1).map(tracks => [`${tracks[0].artist} · “${tracks[0].name}”`, ...tracks.sort((a, b) => a.duration - b.duration).map(track => ` ${String(track.time).padStart(5)}  ${track.year}  ${track.album}${track.compilation ? ' «compilation»' : ''}`)].join('\n')).join('\n\n')
+const report = Array.from(A.values()).filter(tracks => tracks.length > 1).map(tracks => [`${tracks[0].artist} · “${tracks[0].name}” · ${Math.round(tracks[0].duration / 10)}`, ...tracks.sort((a, b) => a.duration - b.duration).map(track => ` ${String(track.time).padStart(5)}  ${track.name} by ${track.artist} on ${track.album}${track.compilation ? ' «compilation»' : ''} (${track.year})`)].join('\n')).join('\n\n')
 console.log(report)

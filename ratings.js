@@ -1,7 +1,7 @@
 #!/usr/bin/env osascript -l JavaScript
 /* global Application */
 
-const stars = (𝑛, c = '★') => ''.padStart(𝑛, c)
+const stars = (𝑛, c = '★') => ''.padStart(Math.floor(𝑛 / 20), c)
 
 const tracks = Application('Music').libraryPlaylists[0].tracks()
 console.log(`Adjusting ratings for ${tracks.length} tracks`)
@@ -19,25 +19,25 @@ for (const track of tracks) {
     }
 
     if (t.rating === 0) {
-      console.log(`rating “${t.name}” by “${t.artist}” ★★★`)
+      console.log(`rating “${t.name}” by “${t.artist}” ${stars(60)}`)
       track.rating = 60
       t.rating = 60
     }
 
     if (t.rating > 60 && !t.favorited) {
-      console.log(`favoriting “${t.name}” by “${t.artist}” (${stars(Math.floor(t.rating / 20))})`)
+      console.log(`favoriting “${t.name}” by “${t.artist}” (${stars(t.rating)})`)
       track.favorited = true
       continue
     }
 
     if (t.favorited && t.rating < 80) {
-      console.log(`rating “${t.name}” by “${t.artist}” ★★★★`)
+      console.log(`rating “${t.name}” by “${t.artist}” ${stars(80)}`)
       track.rating = 80
       continue
     }
 
     if (t.rating < 60 && !t.disliked) {
-      console.log(`disliking “${t.name}” by “${t.artist}” (${stars(Math.floor(t.rating / 20))})`)
+      console.log(`disliking “${t.name}” by “${t.artist}” (${stars(t.rating)})`)
       track.disliked = true
       continue
     }
