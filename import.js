@@ -100,6 +100,7 @@ rl.on('close', () => {
     db.exec('DROP TABLE IF EXISTS "playlisttrack"')
     db.exec('DROP TABLE IF EXISTS "track"')
     db.exec('DROP TABLE IF EXISTS "playlist"')
+    db.exec('CREATE TABLE IF NOT EXISTS "artist" ("key" text PRIMARY KEY NOT NULL, "artist" text NOT NULL, "sortArtist" text NOT NULL) STRICT;')
 
     if (playlists.size > 0) {
       const structure = getStructure(playlists.values())
