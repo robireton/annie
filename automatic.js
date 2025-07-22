@@ -9,7 +9,7 @@ function meetsRequirements (track) {
   if (!(track instanceof Track)) return false
   if (!track.enabled) return false
   if (track.mediaKind !== 'song') return false
-  if (track.cloudStatus === 'no longer available') return false
+  if (['no longer available', 'prerelease'].includes(track.cloudStatus)) return false
   if (['Spoken Word', 'Classical'].includes(track.genre)) return false
   if (['iTunes LP', 'PDF document'].includes(track.kind)) return false
 
@@ -48,7 +48,7 @@ function batchSizes (playlist, tl = 100, playlistsCount = 7) {
 
 const db = new DatabaseSync('library.db')
 
-const music = Playlist.fromDatabase({ name: 'Music', db })
+const music = Playlist.fromDatabase({ db })
 for (const track of music.tracks) {
   if (!meetsRequirements(track)) music.delete(track)
 }

@@ -10,11 +10,23 @@ function writeJSON (obj) {
 const Music = Application('Music')
 
 for (const playlist of Music.playlists()) {
-  if (playlist.class() === 'subscriptionPlaylist') continue
   const p = playlist.properties()
-  writeJSON(p)
+  if (p.class === 'subscriptionPlaylist') continue
+  if (p.class === 'folderPlaylist') continue
+  if (p.class === 'userPlaylist') {
+    if (p.smart) continue
+    writeJSON(p)
+  }
+
   for (const track of playlist.tracks()) {
-    if (playlist.class() === 'libraryPlaylist') writeJSON(track.properties())
-    writeJSON({ class: 'playlistTrack', playlist: p.persistentID, index: track.index(), track: track.persistentID() })
+    const t = track.properties()
+
+    if (p.class === 'libraryPlaylist') {
+      // the tracks that user playlists refer to
+      writeJSON(t)
+    } else {
+      // the mappings between tracks and user playlists
+      writeJSON({ class: 'playlistTrack', playlist: p.persistentID, index: t.index, track: t.persistentID })
+    }
   }
 }
