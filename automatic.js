@@ -9,7 +9,7 @@ function meetsRequirements (track) {
   if (!(track instanceof Track)) return false
   if (!track.enabled) return false
   if (track.mediaKind !== 'song') return false
-  if (track.cloudStatus === 'no longer available') return false
+  if (['no longer available', 'prerelease'].includes(track.cloudStatus)) return false
   if (['Spoken Word', 'Classical'].includes(track.genre)) return false
   if (['iTunes LP', 'PDF document'].includes(track.kind)) return false
 
