@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite'
 
 function standardize (str) {
-  return str.trim().replaceAll(/\s*[(][^)]*[)]\s*/g, '').replaceAll(/\s*[\[][^\]]*[\]]\s*/g, '').normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '').toLowerCase().replaceAll(/&/g, 'and').replaceAll(/['?!.]/g, '')
+  return str.trim().replaceAll(/\s*[(][^)]*[)]\s*/g, '').replaceAll(/\s*[[][^\]]*[\]]\s*/g, '').normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '').toLowerCase().replaceAll(/&/g, 'and').replaceAll(/['?!.]/g, '')
 }
 
 const db = new DatabaseSync('library.db')

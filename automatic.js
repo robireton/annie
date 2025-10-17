@@ -23,13 +23,13 @@ function meetsRequirements (track) {
       if (track.played < 610) return false
       break
     case 3:
-      if (track.played < 377 && !isNew) return false
-      break
-    case 4:
       if (track.played < 233 && !isNew) return false
       break
-    case 5:
+    case 4:
       if (track.played < 144 && !isNew) return false
+      break
+    case 5:
+      if (track.played < 89 && !isNew) return false
       break
   }
   return true
