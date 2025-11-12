@@ -8,15 +8,23 @@ const stdin = $.NSString.alloc.initWithDataEncoding(
 
 const Playlists = new Map()
 const Renames = new Map()
+const Plays = new Map()
 for (const line of stdin) {
   try {
     const update = JSON.parse(line)
     if ('class' in update) {
-      if (update.class === 'playlist') {
-        Playlists.set(update.id, update)
-      }
-      if (update.class === 'rename') {
-        Renames.set(update.id, update)
+      switch (update.class) {
+        case 'playlist':
+          Playlists.set(update.id, update)
+          break
+
+        case 'rename':
+          Renames.set(update.id, update)
+          break
+
+        case 'played':
+          Plays.set(update.id, update)
+          break
       }
     }
   } catch (err) {
@@ -39,7 +47,7 @@ if (Renames.size > 0) {
           console.log(`“${t.sortArtist()}” -> “${r.sortArtist}”`)
           t.sortArtist = r.sortArtist
         }
-      } catch (renameErr) {
+      } catch (_err) {
         console.log(`\n\nerror with ${JSON.stringify(r)}`)
       }
     }
@@ -68,6 +76,28 @@ if (Playlists.size > 0) {
       }
       for (const id of ids) {
         Music.duplicate(Tracks.get(id), { to: p })
+      }
+    }
+  }
+}
+
+if (Plays.size > 0) {
+  for (const t of Music.libraryPlaylists[0].tracks()) {
+    const id = t.persistentID()
+    if (Plays.has(id)) {
+      const r = Plays.get(id)
+      try {
+        if ('date' in r) {
+          const d = new Date(r.date)
+          console.log(`“${t.playedDate()}” -> “${d}”`)
+          t.playedDate = d
+        }
+        if ('count' in r) {
+          console.log(`“${t.playedCount()}” -> “${r.count}”`)
+          t.playedCount = r.count
+        }
+      } catch (_err) {
+        console.log(`\n\nerror with ${JSON.stringify(r)}`)
       }
     }
   }
