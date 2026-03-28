@@ -16,6 +16,7 @@
     "music"
   ],  "scripts": {
     "automatic": "node --disable-warning=ExperimentalWarning automatic.js | osascript -l JavaScript sync.js",
+    "plays": "sh -c 'node --disable-warning=ExperimentalWarning plays.js \"$@\" | osascript -l JavaScript sync.js' --",
     "duplicates": "node --disable-warning=ExperimentalWarning  duplicates.js",
     "ratings": "osascript -l JavaScript ratings.js",
     "refresh": "osascript -l JavaScript export.js | node --disable-warning=ExperimentalWarning import.js",

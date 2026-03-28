@@ -2,6 +2,8 @@ import { argv } from 'node:process'
 import { DatabaseSync } from 'node:sqlite'
 import Playlist from './lib/Playlist.js'
 
+// call as, `npm run plays <playlist name> <start item #> <count of additional items>`
+
 const [, , playlistName, playlistStart, playlistCount] = argv
 if (playlistName) {
   const db = new DatabaseSync('library.db')
