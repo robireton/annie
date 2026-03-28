@@ -14,10 +14,10 @@ function meetsRequirements (track) {
   if (['iTunes LP', 'PDF document'].includes(track.kind)) return false
 
   if (track.stars < 2) return false
-  if ((track.played < 8 || (track.played < 13 && track.added > 34)) && !track.christmas) return false // older songs played recently
+  if ((track.played < 8 || (track.played < 13 && track.age > 34)) && !track.christmas) return false // older songs played recently
   if (track.duplicate) return false // “duplicates” in compilations, etc.
 
-  const isNew = track.added < 89 || track.count < 5
+  const isNew = track.age < 89 || track.activity < 5
   switch (track.stars) {
     case 2:
       if (track.played < 610) return false
