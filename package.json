@@ -14,7 +14,8 @@
     "jxa",
     "sqlite",
     "music"
-  ],  "scripts": {
+  ],
+  "scripts": {
     "automatic": "node --disable-warning=ExperimentalWarning automatic.js | osascript -l JavaScript sync.js",
     "plays": "sh -c 'node --disable-warning=ExperimentalWarning plays.js \"$@\" | osascript -l JavaScript sync.js' --",
     "duplicates": "node --disable-warning=ExperimentalWarning  duplicates.js",
@@ -31,5 +32,9 @@
   "bugs": {
     "url": "https://github.com/robireton/annie/issues"
   },
-  "homepage": "https://github.com/robireton/annie#readme"
+  "homepage": "https://github.com/robireton/annie#readme",
+  "devDependencies": {
+    "eslint": "^9.39.4",
+    "neostandard": "^0.13.0"
+  }
 }
