@@ -12,7 +12,8 @@ function getType (types) {
 
 function getStructure (items) {
   const columnTypes = new Map()
-  for (const track of items) {
+  const tracks = Array.from(items)
+  for (const track of tracks) {
     for (const [key, value] of Object.entries(track)) {
       const type = typeof value === 'number' ? (Number.isInteger(value) ? 'integer' : 'real') : typeof value
       if (!columnTypes.has(key)) {
@@ -20,13 +21,12 @@ function getStructure (items) {
       }
       const s = columnTypes.get(key)
       s.push(type)
-      columnTypes.set(key, s)
     }
   }
 
   // skip columns where every value is the same
   for (const column of columnTypes.keys()) {
-    if ((new Set(Array.from(items).map(track => track[column]))).size === 1) {
+    if ((new Set(tracks.map(track => track[column]))).size === 1) {
       console.log(`skipping unused column “${column}”`)
       columnTypes.delete(column)
     }

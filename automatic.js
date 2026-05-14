@@ -132,12 +132,14 @@ for (const [s, n] of B) {
 }
 
 while (playlists.map(playlist => playlist.length).some(size => size < targetLength) && music.length > 0) {
+  let done = true
   for (const playlist of playlists) {
     if (playlist.length < targetLength) {
       const track = music.leastRecentlyPlayedTrack()
       if (track) {
         playlist.add(track)
         music.delete(track)
+        done = false
       }
     }
 
@@ -147,9 +149,11 @@ while (playlists.map(playlist => playlist.length).some(size => size < targetLeng
       if (track) {
         playlist.add(track)
         music.delete(track)
+        done = false
       }
     }
   }
+  if (done) break
 }
 
 if (debug) {

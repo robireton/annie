@@ -13,10 +13,14 @@ if (playlistName) {
   const tracks = pl.tracks.slice(start - 1, start + count)
   const initial = tracks.shift()
   const playedDate = initial.last
-  for (const track of tracks) {
-    playedDate.setUTCMilliseconds(playedDate.getUTCMilliseconds() + Math.round(track.duration * 1000))
-    if (track.plays === 0 || track.last < playedDate) {
-      console.log((JSON.stringify({ class: 'played', id: track.id, date: playedDate.valueOf(), count: 1 + track.plays })))
+  if (playedDate) {
+    for (const track of tracks) {
+      playedDate.setUTCMilliseconds(playedDate.getUTCMilliseconds() + Math.round(track.duration * 1000))
+      if (track.plays === 0 || track.last < playedDate) {
+        console.log((JSON.stringify({ class: 'played', id: track.id, date: playedDate.valueOf(), count: 1 + track.plays })))
+      }
     }
+  } else {
+    console.error(`“${initial.name}” has never been played.`)
   }
 }
