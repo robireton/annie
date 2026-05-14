@@ -1,9 +1,11 @@
+import { env } from 'node:process'
 import { DatabaseSync } from 'node:sqlite'
 import Track from './lib/Track.js'
 import Playlist from './lib/Playlist.js'
 
+const debug = 'NODE_ENV' in env && String(env.NODE_ENV).toLowerCase() === 'debug'
+const replace = 'REPLACE' in env && String(env.REPLACE).toLowerCase() === 'true'
 const targetLength = 100
-const debug = false
 
 function meetsRequirements (track) {
   if (!(track instanceof Track)) return false
@@ -48,34 +50,28 @@ function batchSizes (playlist, tl = 100, playlistsCount = 7) {
 
 const db = new DatabaseSync('library.db')
 
+// initialize the working set of music with all tracks
 const music = Playlist.fromDatabase({ db })
+if (debug) console.log(`\n\nFull Library:\n${music.summary}`)
+
+// remove tracks that do not meet requirements from the working set of music
 for (const track of music.tracks) {
   if (!meetsRequirements(track)) music.delete(track)
 }
+if (debug) console.log(`\n\nMeets Requirements:\n${music.summary}`)
 
-if (debug) {
-  console.log(`\n\n“${music.name}” (${music.id})`)
-  console.log(`   ★★ · ${String(music.tracksWithStars(2).length).padStart(4)} tracks`)
-  console.log(`  ★★★ · ${String(music.tracksWithStars(3).length).padStart(4)} tracks`)
-  console.log(` ★★★★ · ${String(music.tracksWithStars(4).length).padStart(4)} tracks`)
-  console.log(`★★★★★ · ${String(music.tracksWithStars(5).length).padStart(4)} tracks`)
-  console.log(`total · ${String(music.length).padStart(4)} tracks`)
-  console.log(`distinct artists: ${music.artists.size}`)
-}
-
+// populate playlists with current state from database
 const playlists = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(name => Playlist.fromDatabase({ name, db }))
-if (debug) console.log(`playlists has type ${typeof playlists} and length ${playlists.length} and ${playlists instanceof Array ? 'is' : 'is not'} an array`)
 db.close()
 
-const B = batchSizes(music, targetLength, playlists.length)
-if (debug) {
-  console.log('\nBatch Sizes')
-  for (const [key, value] of B) {
-    console.log(`\t${key}: ${value}`)
-  }
-}
+if (debug) console.log(`\n\nStarting Playlists:\n${playlists.map(p => p.summary).join('\n\n')}`)
 
-if (debug) {
+const B = batchSizes(music, targetLength, playlists.length)
+if (debug) console.log(`\n\nBatch Sizes:\n${Array.from(B.entries()).map(([s, n]) => `\t${s}: ${n}`).join('\n')}`)
+
+if (replace) {
+  // remove all tracks from playlists
+  // to-do: maybe don’t populate these initially if they are going to be cleared…
   for (const playlist of playlists) {
     for (const track of playlist.tracks) {
       playlist.delete(track)
@@ -85,31 +81,23 @@ if (debug) {
   for (const playlist of playlists) {
     for (const track of playlist.tracks) {
       if (music.has(track)) {
+        // remove track already in a playlist from the working library
         music.delete(track)
       } else {
+        // remove track not in working library from playlist
         playlist.delete(track)
       }
     }
   }
 }
 
-if (debug) {
-  for (const playlist of playlists) {
-    console.log(`\n\n“${playlist.name}” (${playlist.id})`)
-    console.log(`   ★★ · ${String(playlist.tracksWithStars(2).length).padStart(4)} tracks`)
-    console.log(`  ★★★ · ${String(playlist.tracksWithStars(3).length).padStart(4)} tracks`)
-    console.log(` ★★★★ · ${String(playlist.tracksWithStars(4).length).padStart(4)} tracks`)
-    console.log(`★★★★★ · ${String(playlist.tracksWithStars(5).length).padStart(4)} tracks`)
-    console.log(`total · ${String(playlist.length).padStart(4)} tracks`)
-    console.log(`distinct artists: ${playlist.artists.size}`)
-  }
-}
+if (debug) console.log(`\n\nAdjusted Playlists:\n${playlists.map(p => p.summary).join('\n\n')}`)
 
+// Fill out playlists so they have the right number (n) of tracks with stars (s)
 for (const [s, n] of B) {
-  if (debug) console.log(`\n\n${s} · ${n}`)
+  if (debug) console.log(`\n\n${s} stars; batch size ${n}`)
   let abort = playlists.map(playlist => playlist.length).every(length => length >= targetLength)
-  if (debug) console.log(`\tabort is ${abort}`)
-  if (debug) console.log(`playlists that have fewer than ${n} tracks with ${s} stars: ${playlists.filter(p => !p.isFull(s, n, targetLength)).map(p => p.name).join(', ')}`)
+  if (debug) console.log(`non-full playlists having fewer than ${n} tracks with ${s} stars: ${playlists.filter(p => !p.isFull(s, n, targetLength)).map(p => p.name).join(', ')}`)
   while (!abort && playlists.some(p => !p.isFull(s, n, targetLength)) && music.tracksWithStars(s).length > 0) {
     for (const playlist of playlists) {
       // Get the least-recently-played track
@@ -138,7 +126,8 @@ for (const [s, n] of B) {
         }
       }
     }
-    if (debug) console.log(`playlists that have fewer than ${n} tracks with ${s} stars: ${playlists.filter(p => !p.isFull(s, n, targetLength)).map(p => p.name).join(', ')}`)
+
+    if (debug && !abort) console.log(`non-full playlists having fewer than ${n} tracks with ${s} stars: ${playlists.filter(p => !p.isFull(s, n, targetLength)).map(p => p.name).join(', ')}`)
   }
 }
 
@@ -164,15 +153,7 @@ while (playlists.map(playlist => playlist.length).some(size => size < targetLeng
 }
 
 if (debug) {
-  for (const playlist of playlists) {
-    console.log(`\n\n“${playlist.name}” (${playlist.id})`)
-    console.log(`   ★★ · ${String(playlist.tracksWithStars(2).length).padStart(4)} tracks`)
-    console.log(`  ★★★ · ${String(playlist.tracksWithStars(3).length).padStart(4)} tracks`)
-    console.log(` ★★★★ · ${String(playlist.tracksWithStars(4).length).padStart(4)} tracks`)
-    console.log(`★★★★★ · ${String(playlist.tracksWithStars(5).length).padStart(4)} tracks`)
-    console.log(`total · ${String(playlist.length).padStart(4)} tracks`)
-    console.log(`distinct artists: ${playlist.artists.size}`)
-  }
+  console.log(`\n\nFinal Playlists:\n${playlists.map(p => p.summary).join('\n\n')}`)
 } else {
   for (const playlist of playlists) {
     console.log(JSON.stringify({ class: 'playlist', id: playlist.id, name: playlist.name, tracks: playlist.shuffle().map(track => track.id) }))
